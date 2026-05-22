@@ -97,11 +97,7 @@ jobs:
             name=$(basename "$dir")
             target="${name#videocaptioner-}"
             chmod +x "$dir"/videocaptioner 2>/dev/null || true
-            if [[ "$target" == win-* ]]; then
-              (cd "$dir" && zip -qr "../../videocaptioner-${VER}-${target}.zip" .)
-            else
-              tar -czf "videocaptioner-${VER}-${target}.tar.gz" -C "$dir" .
-            fi
+            tar -czf "videocaptioner-${VER}-${target}.tar.gz" -C "$dir" .
           done
 
       - name: Create GitHub Release
@@ -109,6 +105,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${{ inputs.release_title }}" \
-            videocaptioner-*.zip videocaptioner-*.tar.gz \
+            videocaptioner-*.tar.gz \
             --title "${{ inputs.release_title }}" \
             --notes "Build triggered manually."
