@@ -8,6 +8,14 @@ on:
         required: false
         default: ""
         type: string
+      release_title:
+        description: "Release title — if set, publish a GitHub Release"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -47,13 +55,13 @@ jobs:
         shell: bash
         run: |
           if [[ -n "${{ inputs.version }}" ]]; then
-            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+            echo "value=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
           else
-            echo "version=0.0.0-ci" >> "$GITHUB_OUTPUT"
+            echo "value=0.0.0-ci" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build executable
-        run: python scripts/build_exe.py --clean --version ${{ steps.version.outputs.version }}
+        run: python scripts/build_exe.py --clean --version ${{ steps.version.outputs.value }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -61,3 +69,38 @@ jobs:
           name: videocaptioner-${{ matrix.target }}
           path: dist/videocaptioner/
           if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: inputs.release_title != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Create archives
+        shell: bash
+        run: |
+          VER="${{ inputs.version }}"
+          if [[ -z "$VER" ]]; then
+            VER="0.0.0-ci"
+          fi
+          for dir in artifacts/*/; do
+            name=$(basename "$dir")
+            target="${name#videocaptioner-}"
+            archive="videocaptioner-${VER}-${target}.zip"
+            (cd "$dir" && zip -qr "../../${archive}" .)
+          done
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ inputs.release_title }}" \
+            videocaptioner-*.zip \
+            --title "${{ inputs.release_title }}" \
+            --notes "Build triggered manually."

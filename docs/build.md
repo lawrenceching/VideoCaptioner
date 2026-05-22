@@ -73,19 +73,18 @@ dist/videocaptioner/
 
 ## CI 构建（GitHub Actions）
 
-在 Actions 页面手动触发 `Build standalone executables` workflow，可选填写版本号（留空则使用 `0.0.0-ci`）。
+在 Actions 页面手动触发 `Build standalone executables` workflow。
 
-矩阵覆盖五个平台：
+参数：
 
-| Platform | Runner |
-|----------|--------|
-| Windows x86-64 | `windows-latest` |
-| Windows arm64 | `windows-11-arm` |
-| Linux x86-64 | `ubuntu-latest` |
-| Linux arm64 | `ubuntu-24.04-arm` |
-| macOS arm64 | `macos-latest` |
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| Version | 否 | 版本号，如 `1.5.0`，留空则为 `0.0.0-ci` |
+| Release title | 否 | GitHub Release 标题。**留空则不发布 Release**（仅产出 artifact） |
 
-构建完成后从 Actions 页面下载对应平台的 artifact。
+填写 Release title 后，workflow 会自动创建 GitHub Release 并附加五个平台的构建产物。
+
+构建产物命名：`videocaptioner-{version}-{target}.zip`，如 `videocaptioner-1.5.0-win-x64.zip`。
 
 ## 注意事项
 
