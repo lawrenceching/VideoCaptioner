@@ -97,7 +97,10 @@ jobs:
             name=$(basename "$dir")
             target="${name#videocaptioner-}"
             chmod +x "$dir"/videocaptioner 2>/dev/null || true
-            tar -czf "videocaptioner-${VER}-${target}.tar.gz" -C "$dir" .
+            mkdir -p "staging/videocaptioner"
+            mv "$dir"/* "staging/videocaptioner/"
+            tar -czf "videocaptioner-${VER}-${target}.tar.gz" -C staging videocaptioner
+            mv "staging/videocaptioner"/* "$dir/"
           done
 
       - name: Create GitHub Release
