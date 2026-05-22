@@ -14,10 +14,20 @@ All提示词以 Markdown 文件形式存储，支持模板变量替换。
 """
 
 import functools
+import sys
 from pathlib import Path
 from string import Template
 
-PROMPTS_DIR = Path(__file__).parent
+_PROMPTS_BASE = Path(__file__).parent
+
+# PyInstaller: prompts are bundled via --add-data alongside the .py files
+if getattr(sys, 'frozen', False) and not _PROMPTS_BASE.exists():
+    # Fallback: search in sys._MEIPASS
+    _MEIPASS = getattr(sys, '_MEIPASS', '')
+    if _MEIPASS:
+        _PROMPTS_BASE = Path(_MEIPASS) / "videocaptioner" / "core" / "prompts"
+
+PROMPTS_DIR = _PROMPTS_BASE
 
 
 @functools.lru_cache(maxsize=32)

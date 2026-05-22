@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from pathlib import Path
 
 try:
@@ -17,12 +18,18 @@ GITHUB_REPO_URL = "https://github.com/WEIFENG2333/VideoCaptioner"
 RELEASE_URL = "https://github.com/WEIFENG2333/VideoCaptioner/releases/latest"
 FEEDBACK_URL = "https://github.com/WEIFENG2333/VideoCaptioner/issues"
 
-# Detect whether running from source tree or pip-installed
+# Detect whether running from source tree, pip-installed, or PyInstaller bundle
 _PACKAGE_DIR = Path(__file__).parent
-_PROJECT_ROOT = _PACKAGE_DIR.parent
 
-# Development mode: resource/ exists next to the package
-_IS_DEV = (_PROJECT_ROOT / "resource").is_dir()
+if getattr(sys, 'frozen', False):
+    # PyInstaller bundle: resources sit next to the executable
+    _FROZEN_DIR = Path(sys.executable).parent
+    _PROJECT_ROOT = _FROZEN_DIR
+    _IS_DEV = False
+else:
+    _PROJECT_ROOT = _PACKAGE_DIR.parent
+    # Development mode: resource/ exists next to the package
+    _IS_DEV = (_PROJECT_ROOT / "resource").is_dir()
 
 if _IS_DEV:
     ROOT_PATH = _PROJECT_ROOT
@@ -30,13 +37,20 @@ if _IS_DEV:
     APPDATA_PATH = ROOT_PATH / "AppData"
     WORK_PATH = ROOT_PATH / "work-dir"
 else:
-    # Installed via pip — use platform-appropriate directories
     from platformdirs import user_data_dir
 
-    ROOT_PATH = Path(user_data_dir(APP_NAME))
-    RESOURCE_PATH = ROOT_PATH / "resource"
-    APPDATA_PATH = ROOT_PATH
-    WORK_PATH = Path.home() / "VideoCaptioner"
+    # PyInstaller: use the executable's directory as the root for resource/
+    if getattr(sys, 'frozen', False):
+        ROOT_PATH = _PROJECT_ROOT
+        RESOURCE_PATH = ROOT_PATH / "resource"
+        APPDATA_PATH = Path(user_data_dir(APP_NAME))
+        WORK_PATH = Path.home() / "VideoCaptioner"
+    else:
+        # Installed via pip — use platform-appropriate directories
+        ROOT_PATH = Path(user_data_dir(APP_NAME))
+        RESOURCE_PATH = ROOT_PATH / "resource"
+        APPDATA_PATH = ROOT_PATH
+        WORK_PATH = Path.home() / "VideoCaptioner"
 
 BIN_PATH = RESOURCE_PATH / "bin"
 ASSETS_PATH = RESOURCE_PATH / "assets"
