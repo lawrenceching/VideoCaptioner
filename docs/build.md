@@ -73,20 +73,19 @@ dist/videocaptioner/
 
 ## CI 构建（GitHub Actions）
 
-```yaml
-- name: Build executable
-  run: |
-    pip install pyinstaller
-    pip install -e .
-    python scripts/build_exe.py --clean
+在 Actions 页面手动触发 `Build standalone executables` workflow，可选填写版本号（留空则使用 `0.0.0-ci`）。
 
-- name: Archive
-  run: |
-    # Windows
-    7z a videocaptioner-win64.zip dist/videocaptioner/
-    # macOS / Linux
-    tar -czf videocaptioner-linux.tar.gz -C dist videocaptioner/
-```
+矩阵覆盖五个平台：
+
+| Platform | Runner |
+|----------|--------|
+| Windows x86-64 | `windows-latest` |
+| Windows arm64 | `windows-11-arm` |
+| Linux x86-64 | `ubuntu-latest` |
+| Linux arm64 | `ubuntu-24.04-arm` |
+| macOS arm64 | `macos-latest` |
+
+构建完成后从 Actions 页面下载对应平台的 artifact。
 
 ## 注意事项
 
