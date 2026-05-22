@@ -96,8 +96,12 @@ jobs:
           for dir in artifacts/*/; do
             name=$(basename "$dir")
             target="${name#videocaptioner-}"
-            archive="videocaptioner-${VER}-${target}.zip"
-            (cd "$dir" && zip -qr "../../${archive}" .)
+            chmod +x "$dir"/videocaptioner 2>/dev/null || true
+            if [[ "$target" == win-* ]]; then
+              (cd "$dir" && zip -qr "../../videocaptioner-${VER}-${target}.zip" .)
+            else
+              tar -czf "videocaptioner-${VER}-${target}.tar.gz" -C "$dir" .
+            fi
           done
 
       - name: Create GitHub Release
@@ -105,6 +109,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${{ inputs.release_title }}" \
-            videocaptioner-*.zip \
+            videocaptioner-*.zip videocaptioner-*.tar.gz \
             --title "${{ inputs.release_title }}" \
             --notes "Build triggered manually."
